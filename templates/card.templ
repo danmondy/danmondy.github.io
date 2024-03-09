@@ -1,0 +1,41 @@
+package templates
+
+import(
+    "fmt"
+    "github.com/danmondy/AirshipCards/data"
+)
+
+templ Card(c data.Card){
+    <div class="card">
+        <input type="hidden" name="id" value="{c.ID}"/>
+        <div class="top"><div class="price">{fmt.Sprintf("%d",c.TextTopRight)}</div></div>
+        <div class="image"><img src={fmt.Sprintf("/assets/card-images/%s", c.Image)}/></div>
+        <div class="middle">{c.Text}</div>
+        <div class="bottom">{c.TextBottomLeft}</div>
+        <button class="edit button is-light" hx-target="#bot-right" hx-swap="innerHTML" hx-get={fmt.Sprintf("/card/edit/%s", c.ID)}><ion-icon name="pencil" size="large"></ion-icon></button>
+        
+    </div>
+}
+
+templ DeckList(decks []data.Deck){
+    <ul hx-trigger="RefreshDecks from:body" hx-get="/decks">
+        for _, d := range decks{
+            <li hx-target="#top-right" hx-get={fmt.Sprintf("/deck/%s", d.ID)}>{d.Name}<ion-icon class="edit-deck" name="pencil" hx-target="#bot-right" hx-get={fmt.Sprintf("/deck/edit/%s", d.ID)}></ion-icon></li>
+        }
+        <li hx-post="/deck/new"><ion-icon name="add-outline" size="large"></ion-icon></li>
+    </ul>
+}
+
+templ DeckView(deck data.Deck, cards []data.Card){
+    <div class="deck" hx-trigger="RefreshDeck from:body" hx-get={fmt.Sprintf("/deck/%s", deck.ID)}>
+
+        for _, c := range cards{
+            @Card(c)
+        }
+        <div class="card" hx-target="this" hx-swap="beforebegin">
+            <div class="new">
+                <button class="button" hx-post={fmt.Sprintf("/card/%s", deck.ID)}>Create</button>
+            </div>
+        </div>
+    </div>
+}

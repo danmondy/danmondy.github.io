@@ -1,0 +1,44 @@
+package templates
+
+import(
+    "github.com/danmondy/AirshipCards/data"
+)
+
+templ Layout(decks []data.Deck, cards []data.Card){
+
+<html>
+    <head>
+        @Head()
+    </head>
+    <body>
+        <div class="main-container">
+            <div class="main-left">
+                @DeckList(decks)
+            </div>
+            <div class="main-right"> 
+                <div class="right-top" id="top-right"> 
+                </div>
+                <div class="right-bot" id="bot-right">
+                </div>
+            </div>
+        </div>
+
+        @Scripts()
+    </body>
+</html>
+
+}
+
+templ Head(){
+    <title>cards</title>
+    <script src="https://unpkg.com/htmx.org@1.9.10" integrity="sha384-D1Kt99CQMDuVetoL1lrYwg5t+9QdHe7NLX/SoJYkXDFfX37iInKRy5xLSi8nO7UC" crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="assets/bulma.min.css"/>
+    <link rel="stylesheet" href="assets/style.css"/>
+}
+
+templ Scripts(){
+
+    <!--These icons are only loaded when used -->
+    <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
+    <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
+}
