@@ -4,66 +4,18 @@ import (
 	"log"
 )
 
-func RunSql() {
-	sql := "ALTER table card add column Image TEXT;"
-	_, err := db.Exec(sql)
+func GetDeckByName(deckName string) ([]Card, error) {
+	var items []Card
+	sql := "SELECT c.* FROM card c join deck d on c.deckid = d.id where d.name = ?"
+
+	log.Println(sql)
+	err := db.Select(&items, sql, deckName)
 	if err != nil {
-		log.Fatal(err)
-	}
-}
-
-func createTables() error {
-	//add the schema for my db in code to keep versions in source control
-	createCardTableSQL := `CREATE TABLE card (
-		"id" TEXT NOT NULL,
-		"deckid" TEXT NOT NULL,
-		"text" TEXT NOT NULL,
-		"image" TEXT NOT NULL,
-		"texttopright" INT NOT NULL,
-		"textbottomleft" TEXT NOT NULL
-	  );`
-	createDeckTableSQL := `CREATE TABLE deck (
-		"id" TEXT,
-		"name" TEXT	
-	  );`
-
-	_, err := db.Exec(createCardTableSQL)
-	if err != nil {
-		log.Fatal(err)
-		return err
+		log.Println(err)
+		return items, err
 	}
 
-	_, err = db.Exec(createDeckTableSQL)
-	if err != nil {
-		log.Fatal(err)
-		return err
-	}
-
-	return nil
-}
-
-func populateTables() {
-	decks := []Deck{
-		{ID: NewUniqueID(), Name: "Event"},
-		{ID: NewUniqueID(), Name: "Item"},
-	}
-	for _, d := range decks {
-		Insert(&d)
-	}
-	cards := []Card{
-		{ID: NewUniqueID(), DeckID: decks[1].ID, Text: "Solar Sails", TextTopRight: 1, TextBottomLeft: "+1 Movement Per Turn"},
-		{ID: NewUniqueID(), DeckID: decks[1].ID, Text: "Solar Sails", TextTopRight: 1, TextBottomLeft: "+1 Movement Per Turn"},
-		{ID: NewUniqueID(), DeckID: decks[1].ID, Text: "Solar Sails", TextTopRight: 1, TextBottomLeft: "+1 Movement Per Turn"},
-		{ID: NewUniqueID(), DeckID: decks[1].ID, Text: "Solar Sails", TextTopRight: 2, TextBottomLeft: "+2 Movement Per Turn"},
-		{ID: NewUniqueID(), DeckID: decks[1].ID, Text: "Shield", TextTopRight: 1, TextBottomLeft: "+1 Dmg Absorbed Per Attack"},
-		{ID: NewUniqueID(), DeckID: decks[1].ID, Text: "Shield", TextTopRight: 1, TextBottomLeft: "+1 Dmg Absorbed Per Attack"},
-		{ID: NewUniqueID(), DeckID: decks[1].ID, Text: "Shield", TextTopRight: 1, TextBottomLeft: "+1 Dmg Absorbed Per Attack"},
-		{ID: NewUniqueID(), DeckID: decks[1].ID, Text: "Shield", TextTopRight: 2, TextBottomLeft: "+2 Dmg Absorbed Per Attack"},
-		{ID: NewUniqueID(), DeckID: decks[1].ID, Text: "Gatling Gun", TextTopRight: 1, TextBottomLeft: "+1 Movement Per Turn"},
-	}
-	for _, c := range cards {
-		Insert(&c)
-	}
+	return items, nil
 }
 
 func DeleteCardsInDeck(id string) error {

@@ -11,22 +11,23 @@ templ Layout(decks []data.Deck, cards []data.Card){
         @Head()
     </head>
     <body>
-        <div class="main-container">
-            <div class="main-left">
-                @DeckList(decks)
-            </div>
-            <div class="main-right"> 
-                <div class="right-top" id="top-right"> 
-                </div>
-                <div class="right-bot" id="bot-right">
-                </div>
-            </div>
+        @Nav()
+        <div class="main-container" id="main-container">
+            
         </div>
-
         @Scripts()
     </body>
 </html>
 
+}
+
+templ Nav(){
+    <div class="nav">
+        <ul>
+            <li hx-target="#main-container" hx-get="/editor">editor</li>
+            <li hx-target="#main-container" hx-get="/game">game</li>            
+        </ul>
+    </div>
 }
 
 templ Head(){

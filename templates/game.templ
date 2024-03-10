@@ -1,0 +1,34 @@
+package templates
+
+
+templ Game(Deck){
+
+}
+
+templ Store(d data.Deck, storeSize int){
+    <div class="deck-area">
+        <div class="deck-stack"></div>
+        <div class="store"></div>
+        for i:= 0; i<storeSize; i++ {
+            @StoreCard(d[i])
+        }
+    </div>
+}
+templ StoreCard(c data.Card){ 
+    <div class="card">
+        <input type="hidden" name="id" value="{c.ID}"/>
+        <div class="top"><div class="price">{fmt.Sprintf("%d",c.TextTopRight)}</div></div>
+        <div class="image"><img src={fmt.Sprintf("/assets/card-images/%s", c.Image)}/></div>
+        <div class="middle">{c.Text}</div>
+        <div class="bottom">{c.TextBottomLeft}</div>
+        <button class="edit button is-light" hx-target="#bot-right" hx-swap="innerHTML" hx-get={fmt.Sprintf("/card/edit/%s", c.ID)}><ion-icon name="arrow-round-down" size="large"></ion-icon></button>
+    </div>
+}
+
+templ CardSlot(c Card){
+    if c == nil{
+        <div class="card-holder"></div>
+    } else {
+        @Card(c)
+    }
+}

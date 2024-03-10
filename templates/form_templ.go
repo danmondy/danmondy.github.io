@@ -16,9 +16,9 @@ import (
 	"strings"
 )
 
-//This builds a form for any type of object based on two struct tags 'form' and 'label'
-//form is the type (eg. text, hidden, number... etc.)
-//label is the visual discriptor
+// This builds a form for any type of object based on two struct tags 'form' and 'label'
+// form is the type (eg. text, hidden, number... etc.)
+// label is the visual discriptor
 func GetFormAsString(item any) (string, error) {
 	name := strings.ToLower(reflect.TypeOf(item).Elem().Name())
 	val := reflect.ValueOf(item).Elem()
