@@ -9,45 +9,96 @@ import(
 //This builds a form for any type of object based on two struct tags 'form' and 'label'
 //form is the type (eg. text, hidden, number... etc.)
 //label is the visual discriptor
-func GetFormAsString(item any)(string, error){
+func GetFormAsString(item any, create bool)(string, error){
     name := strings.ToLower(reflect.TypeOf(item).Elem().Name())
 	val := reflect.ValueOf(item).Elem()
+    editOrCreate := "Edit"
+    if create {
+        editOrCreate = "Create"
+    }
     
     var result strings.Builder
-    result.WriteString(fmt.Sprintf(`<form hx-put="/%s/update" hx-swap="outerHTML" target="#top-right">`, name))
-    result.WriteString(fmt.Sprintf(`<div class="title">%s</div>`, name))
+    result.WriteString(`<div class="modal-card" id="modal-card">`)
+    if create == true {
+        result.WriteString(fmt.Sprintf(`<form hx-post="/editor/%s/new" hx-swap="innerHTML" hx-target="#modal-response-message">`, name ))
+    } else {
+        result.WriteString(fmt.Sprintf(`<form hx-put="/editor/%s/update" hx-swap="innerHTML" hx-target="#modal-response-message">`, name ))
+    }
+    result.WriteString(fmt.Sprintf(`
+                <header class="modal-card-head">
+                    <p class="modal-card-title">%s %s</p>
+                    <button type="button" class="delete" aria-label="close" @click="modal = false"></button>
+                </header>                
+                <section class="modal-card-body"><div class="form-container">`, editOrCreate, name))
     var id string
 	for i := 0; i < val.NumField(); i++ {
 		valueField := val.Field(i)
 		typeField := val.Type().Field(i)
 
-		inputType := typeField.Tag.Get("form")
+		inputType := typeField.Tag.Get("form-type")
         label := typeField.Tag.Get("label")	
+        typeName := strings.ToLower(typeField.Name)
         //tags := strings.Split(tag, ",") for multiple tags you could loop over the after splitting		
-        if(strings.ToLower(typeField.Name) == "id"){
+        if(typeName == "id"){
             id = valueField.String()
         }
         switch inputType{
             case "omit":
                 continue
             case "text":
-                result.WriteString(fmt.Sprintf(`<div class="row"><label>%s</label><input type="text" name="%s" placeholder="%s" value="%s"/></div>`,label, typeField.Name, label, valueField))
+                result.WriteString(fmt.Sprintf(`<div class="row"><label>%s</label><input type="text" name="%s" placeholder="%s" value="%s"/></div>`,label, typeName, label, valueField))
+            case "color-list":
+                result.WriteString(fmt.Sprintf(`<div class="row"><label>%s</label>%s</div>`, label, ColorWidget(valueField.String(), typeName)))
+            case "color":
+                result.WriteString(fmt.Sprintf(`<div class="row"><label>%s</label><input type="color" name="%s" placeholder="%s" value="%s"/></div>`,label, typeName, label, valueField))
             case "hidden":
-                result.WriteString(fmt.Sprintf(`<input type="hidden" name="%s" value="%s"/>`,typeField.Name, valueField))
+                result.WriteString(fmt.Sprintf(`<input type="hidden" name="%s" value="%s"/>`,typeName, valueField))
             case "number":
-                result.WriteString(fmt.Sprintf(`<div class="row"><label>%s</label><input type="number" name="%s" placeholder="%s" value="%d"/></div>`,label, typeField.Name, label, valueField))            
+                result.WriteString(fmt.Sprintf(`<div class="row"><label>%s</label><input type="number" name="%s" placeholder="%s" value="%v"/></div>`,label, typeName, label, valueField))            
         }		
 	}
-    result.WriteString(fmt.Sprintf(`<div class="row">
-    <button class="button is-primary" type="submit">save</button>
-    <button class="button is-danger" hx-delete="/%s/%s" hx-swap="innerHTML" hx-target="#bot-right">delete</button></div>`,name, id))
-    result.WriteString("</form>")
-    fmt.Println(name, " : ", result.String())
+    result.WriteString(`
+    </div></section>
+        <footer class="modal-card-foot">
+            <div id="modal-response-message"></div>
+            <div class="modal-card-foot-buttons">
+                <button class="button is-success" type="submit">Save changes</button>
+                <button class="button" type="button" @click="modal = false">Cancel</button>`)
+    if create == false {
+        result.WriteString(fmt.Sprintf(`<button class="button is-danger" hx-delete="/editor/%s/%s" hx-swap="innerHTML" hx-target="#modal-response-message">delete</button>`,name, id))
+    }
+    result.WriteString(`</div>
+            </footer>
+            </form>
+        </div>`)
     return result.String(), nil
 }
 
-templ CreateForm(item any){ //object of type any (T)
-   @templ.Raw(GetFormAsString(item))
+templ CreateForm(item any, create bool){ //object of type any (T)
+   @templ.Raw(GetFormAsString(item, create))
+}
+
+func ColorWidget(colors string, name string) string { 
+    return fmt.Sprintf(`<div x-data="{ colors : '%s'.split(','), currentColor : '#333333'}">
+          <div class="color-widget">
+            <input class="color-input" type="color" x-model="currentColor" />
+            <input type="hidden" name="%s" x-bind:value="colors" />
+            <button
+              type="button"
+              class="py-1 px-4 rounded bg-blue-100"
+              @click="colors.push(currentColor)"
+            >
+              Add
+            </button>
+            <template x-for="c in colors">
+              <div class="selected-color"
+                :style=`+"\"`background-color: ${c};`\""+`
+                x-on:click="i = colors.indexOf(c); colors.splice(i, 1) "
+              >
+                x</div>
+            </template>
+          </div>
+      </div>`, colors, name)
 }
 
 /*

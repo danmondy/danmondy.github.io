@@ -14,6 +14,23 @@ func Delete(table string, id string) error {
 	return err
 }
 
+func DeleteAll[T any](id string, colName string) error {
+	zero := [0]T{}
+	table := strings.ToLower(reflect.TypeOf(zero).Elem().Name())
+	ts := strings.Split(table, ".")
+	table = ts[len(ts)-1]
+
+	sql := fmt.Sprintf("DELETE FROM %s where %s = ?", table, colName)
+
+	log.Println(sql)
+	_, err := db.Exec(sql, id)
+	if err != nil {
+		log.Println(err)
+		return err
+	}
+	return nil
+}
+
 func Insert(o interface{}) error {
 	t := strings.ToLower(reflect.TypeOf(o).Elem().Name())
 	ts := strings.Split(t, ".")

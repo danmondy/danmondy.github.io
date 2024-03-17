@@ -10,7 +10,12 @@ import "context"
 import "io"
 import "bytes"
 
-func Game() templ.Component {
+import (
+	"fmt"
+	"github.com/danmondy/AirshipCards/data"
+)
+
+func GameLayout(games []data.Game, currentGame data.Game) templ.Component {
 	return templ.ComponentFunc(func(ctx context.Context, templ_7745c5c3_W io.Writer) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templ_7745c5c3_W.(*bytes.Buffer)
 		if !templ_7745c5c3_IsBuffer {
@@ -23,6 +28,42 @@ func Game() templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<html><head>")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = Head().Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</head><body>")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = Nav(games).Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<div class=\"main-container\" id=\"main-container\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = Game(currentGame).Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</div>")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = Scripts().Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</body></html>")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
 		if !templ_7745c5c3_IsBuffer {
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteTo(templ_7745c5c3_W)
 		}
@@ -30,7 +71,7 @@ func Game() templ.Component {
 	})
 }
 
-func DeckArea(d data.Deck, storeSize int) templ.Component {
+func Game(g data.Game) templ.Component {
 	return templ.ComponentFunc(func(ctx context.Context, templ_7745c5c3_W io.Writer) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templ_7745c5c3_W.(*bytes.Buffer)
 		if !templ_7745c5c3_IsBuffer {
@@ -43,12 +84,269 @@ func DeckArea(d data.Deck, storeSize int) templ.Component {
 			templ_7745c5c3_Var2 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<div class=\"game-container\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = Board(g.Board).Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		for _, d := range g.Decks {
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<div class=\"shop\" id=\"shop\">")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = Shop(d.CardList).Render(ctx, templ_7745c5c3_Buffer)
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</div>")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</div><div class=\"players\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		for i, p := range g.Players {
+			templ_7745c5c3_Err = PlayerBoard(p, i).Render(ctx, templ_7745c5c3_Buffer)
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</div>")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = ScriptDraggable().Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		if !templ_7745c5c3_IsBuffer {
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteTo(templ_7745c5c3_W)
+		}
+		return templ_7745c5c3_Err
+	})
+}
+
+func Board(b data.Board) templ.Component {
+	return templ.ComponentFunc(func(ctx context.Context, templ_7745c5c3_W io.Writer) (templ_7745c5c3_Err error) {
+		templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templ_7745c5c3_W.(*bytes.Buffer)
+		if !templ_7745c5c3_IsBuffer {
+			templ_7745c5c3_Buffer = templ.GetBuffer()
+			defer templ.ReleaseBuffer(templ_7745c5c3_Buffer)
+		}
+		ctx = templ.InitializeContext(ctx)
+		templ_7745c5c3_Var3 := templ.GetChildren(ctx)
+		if templ_7745c5c3_Var3 == nil {
+			templ_7745c5c3_Var3 = templ.NopComponent
+		}
+		ctx = templ.ClearChildren(ctx)
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<div class=\"board\" id=\"board\"><div class=\"pieces\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = Resources().Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</div><div class=\"map\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		for _, h := range b.Hexes {
+			templ_7745c5c3_Err = templ.Raw(GetHexDiv(calcHexPos(h.X, h.Y, 60, 52, 0))).Render(ctx, templ_7745c5c3_Buffer)
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(" ")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = Hex(h.Color, 60, 60).Render(ctx, templ_7745c5c3_Buffer)
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(" <div class=\"pos\">")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			var templ_7745c5c3_Var4 string
+			templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintln(h.X, h.Y))
+			if templ_7745c5c3_Err != nil {
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates\game.templ`, Line: 49, Col: 56}
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</div><div class=\"type\" x-show=\"open\">")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			switch h.Type {
+			case "wood":
+				templ_7745c5c3_Err = SVGTree().Render(ctx, templ_7745c5c3_Buffer)
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+			case "ore":
+				templ_7745c5c3_Err = SVGMtn().Render(ctx, templ_7745c5c3_Buffer)
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+			case "wool":
+				templ_7745c5c3_Err = SVGCloth().Render(ctx, templ_7745c5c3_Buffer)
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+			case "adder":
+				templ_7745c5c3_Err = SVGFlower().Render(ctx, templ_7745c5c3_Buffer)
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+			default:
+				templ_7745c5c3_Err = SVGAir().Render(ctx, templ_7745c5c3_Buffer)
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</div>")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templ.Raw("</div>").Render(ctx, templ_7745c5c3_Buffer)
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</div><div class=\"pieces\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = Resources().Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</div></div>")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		if !templ_7745c5c3_IsBuffer {
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteTo(templ_7745c5c3_W)
+		}
+		return templ_7745c5c3_Err
+	})
+}
+
+func Shop(d []data.Card) templ.Component {
+	return templ.ComponentFunc(func(ctx context.Context, templ_7745c5c3_W io.Writer) (templ_7745c5c3_Err error) {
+		templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templ_7745c5c3_W.(*bytes.Buffer)
+		if !templ_7745c5c3_IsBuffer {
+			templ_7745c5c3_Buffer = templ.GetBuffer()
+			defer templ.ReleaseBuffer(templ_7745c5c3_Buffer)
+		}
+		ctx = templ.InitializeContext(ctx)
+		templ_7745c5c3_Var5 := templ.GetChildren(ctx)
+		if templ_7745c5c3_Var5 == nil {
+			templ_7745c5c3_Var5 = templ.NopComponent
+		}
+		ctx = templ.ClearChildren(ctx)
+		for _, c := range d {
+			templ_7745c5c3_Err = ShopCard(c).Render(ctx, templ_7745c5c3_Buffer)
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+		}
+		if !templ_7745c5c3_IsBuffer {
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteTo(templ_7745c5c3_W)
+		}
+		return templ_7745c5c3_Err
+	})
+}
+
+func GetHexDiv(x int, y int) string {
+	return fmt.Sprintf(`<div x-data="{ open: false }" x-on:click="open = ! open" style="position:absolute;left:%dpx;top:%dpx">`, x, y)
+}
+
+func calcHexPos(x int, y int, w int, h int, padding int) (int, int) {
+	xx := int(((w * 3 / 4) + padding) * x)
+	yy := int((h + padding) * y)
+	if x%2 != 0 {
+		yy = yy + int(h/2)
+	}
+	return xx, yy
+}
+
+func Hex(color string, w int, h int) templ.Component {
+	return templ.ComponentFunc(func(ctx context.Context, templ_7745c5c3_W io.Writer) (templ_7745c5c3_Err error) {
+		templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templ_7745c5c3_W.(*bytes.Buffer)
+		if !templ_7745c5c3_IsBuffer {
+			templ_7745c5c3_Buffer = templ.GetBuffer()
+			defer templ.ReleaseBuffer(templ_7745c5c3_Buffer)
+		}
+		ctx = templ.InitializeContext(ctx)
+		templ_7745c5c3_Var6 := templ.GetChildren(ctx)
+		if templ_7745c5c3_Var6 == nil {
+			templ_7745c5c3_Var6 = templ.NopComponent
+		}
+		ctx = templ.ClearChildren(ctx)
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<svg class=\"hex\" stroke=\"#671919\" fill=\"")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(fmt.Sprintf("%s", color)))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("\" height=\"")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(fmt.Sprintf("%dpx", h)))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("\" width=\"")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(fmt.Sprintf("%dpx", w)))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("\" version=\"1.1\" id=\"Capa_1\" xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" viewBox=\"0 0 184.751 184.751\" xml:space=\"preserve\"><g id=\"SVGRepo_bgCarrier\" stroke-width=\"0\"></g> <g id=\"SVGRepo_tracerCarrier\" stroke-linecap=\"round\" stroke-linejoin=\"round\"></g> <g id=\"SVGRepo_iconCarrier\"><path d=\"M0,92.375l46.188-80h92.378l46.185,80l-46.185,80H46.188L0,92.375z\"></path></g></svg>")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		if !templ_7745c5c3_IsBuffer {
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteTo(templ_7745c5c3_W)
+		}
+		return templ_7745c5c3_Err
+	})
+}
+
+func Store(deck []data.Card, storeSize int) templ.Component {
+	return templ.ComponentFunc(func(ctx context.Context, templ_7745c5c3_W io.Writer) (templ_7745c5c3_Err error) {
+		templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templ_7745c5c3_W.(*bytes.Buffer)
+		if !templ_7745c5c3_IsBuffer {
+			templ_7745c5c3_Buffer = templ.GetBuffer()
+			defer templ.ReleaseBuffer(templ_7745c5c3_Buffer)
+		}
+		ctx = templ.InitializeContext(ctx)
+		templ_7745c5c3_Var7 := templ.GetChildren(ctx)
+		if templ_7745c5c3_Var7 == nil {
+			templ_7745c5c3_Var7 = templ.NopComponent
+		}
+		ctx = templ.ClearChildren(ctx)
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<div class=\"deck-area\"><div class=\"deck-stack\"></div><div class=\"store\"></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		for i := 0; i < storeSize; i++ {
-			templ_7745c5c3_Err = Card().Render(ctx, templ_7745c5c3_Buffer)
+			templ_7745c5c3_Err = CardSlot(&deck[i]).Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -64,7 +362,7 @@ func DeckArea(d data.Deck, storeSize int) templ.Component {
 	})
 }
 
-func CardSlot(c Card) templ.Component {
+func Resources() templ.Component {
 	return templ.ComponentFunc(func(ctx context.Context, templ_7745c5c3_W io.Writer) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templ_7745c5c3_W.(*bytes.Buffer)
 		if !templ_7745c5c3_IsBuffer {
@@ -72,9 +370,157 @@ func CardSlot(c Card) templ.Component {
 			defer templ.ReleaseBuffer(templ_7745c5c3_Buffer)
 		}
 		ctx = templ.InitializeContext(ctx)
-		templ_7745c5c3_Var3 := templ.GetChildren(ctx)
-		if templ_7745c5c3_Var3 == nil {
-			templ_7745c5c3_Var3 = templ.NopComponent
+		templ_7745c5c3_Var8 := templ.GetChildren(ctx)
+		if templ_7745c5c3_Var8 == nil {
+			templ_7745c5c3_Var8 = templ.NopComponent
+		}
+		ctx = templ.ClearChildren(ctx)
+		for i := 0; i < 20; i++ {
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<div class=\"draggable\" style=\"position:absolute; left:10px; top:110px; width:20px; height:20px;background-color:sienna\"></div>")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+		}
+		for i := 0; i < 20; i++ {
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<div class=\"draggable\" style=\"position:absolute; left:10px; top:210px; width:20px; height:20px;background-color:beige\"></div>")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+		}
+		for i := 0; i < 20; i++ {
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<div class=\"draggable\" style=\"position:absolute; left:10px; top:310px; width:20px; height:20px;background-color:gray\"></div>")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+		}
+		for i := 0; i < 20; i++ {
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<div class=\"draggable\" style=\"position:absolute; left:10px; top:410px; width:20px; height:20px;background-color:mediumaquamarine\"></div>")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+		}
+		if !templ_7745c5c3_IsBuffer {
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteTo(templ_7745c5c3_W)
+		}
+		return templ_7745c5c3_Err
+	})
+}
+
+func ScriptDraggable() templ.Component {
+	return templ.ComponentFunc(func(ctx context.Context, templ_7745c5c3_W io.Writer) (templ_7745c5c3_Err error) {
+		templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templ_7745c5c3_W.(*bytes.Buffer)
+		if !templ_7745c5c3_IsBuffer {
+			templ_7745c5c3_Buffer = templ.GetBuffer()
+			defer templ.ReleaseBuffer(templ_7745c5c3_Buffer)
+		}
+		ctx = templ.InitializeContext(ctx)
+		templ_7745c5c3_Var9 := templ.GetChildren(ctx)
+		if templ_7745c5c3_Var9 == nil {
+			templ_7745c5c3_Var9 = templ.NopComponent
+		}
+		ctx = templ.ClearChildren(ctx)
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<script>\r\n    var draggableElements = document.getElementsByClassName(\"draggable\");\r\n\r\n    for(var i = 0; i < draggableElements.length; i++){\r\n        dragElement(draggableElements[i]);\r\n    }\r\n\r\n    function dragElement(elmnt) {\r\n        var pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;\r\n        if (document.getElementById(elmnt.id + \"header\")) {\r\n            document.getElementById(elmnt.id + \"header\").onmousedown = dragMouseDown;\r\n        } else {\r\n            elmnt.onmousedown = dragMouseDown;\r\n        }\r\n        function dragMouseDown(e) {\r\n            e = e || window.event;\r\n            pos3 = parseInt(e.clientX);\r\n            pos4 = parseInt(e.clientY);\r\n            document.onmouseup = closeDragElement;\r\n            document.onmousemove = elementDrag;\r\n            return false;\r\n        }\r\n\r\n        function elementDrag(e) {\r\n            e = e || window.event;\r\n            pos1 = pos3 - parseInt(e.clientX);\r\n            pos2 = pos4 - parseInt(e.clientY);\r\n            pos3 = parseInt(e.clientX);\r\n            pos4 = parseInt(e.clientY);\r\n            elmnt.style.top = (elmnt.offsetTop - pos2) + \"px\";\r\n            console.log(elmnt.offsetTop)\r\n            elmnt.style.left = (elmnt.offsetLeft - pos1) + \"px\";\r\n        }\r\n\r\n        function closeDragElement() {\r\n            document.onmouseup = null;\r\n            document.onmousemove = null;\r\n        }\r\n    }\r\n</script>")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		if !templ_7745c5c3_IsBuffer {
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteTo(templ_7745c5c3_W)
+		}
+		return templ_7745c5c3_Err
+	})
+}
+
+func PlayerBoard(p data.Player, i int) templ.Component {
+	return templ.ComponentFunc(func(ctx context.Context, templ_7745c5c3_W io.Writer) (templ_7745c5c3_Err error) {
+		templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templ_7745c5c3_W.(*bytes.Buffer)
+		if !templ_7745c5c3_IsBuffer {
+			templ_7745c5c3_Buffer = templ.GetBuffer()
+			defer templ.ReleaseBuffer(templ_7745c5c3_Buffer)
+		}
+		ctx = templ.InitializeContext(ctx)
+		templ_7745c5c3_Var10 := templ.GetChildren(ctx)
+		if templ_7745c5c3_Var10 == nil {
+			templ_7745c5c3_Var10 = templ.NopComponent
+		}
+		ctx = templ.ClearChildren(ctx)
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<div class=\"player\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var11 = []any{fmt.Sprintf("draggable player-%v", i)}
+		templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var11...)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<div class=\"")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ.CSSClasses(templ_7745c5c3_Var11).String()))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("\" style=\"position:absolute;top:10px;left:-40px;width:40px;height:40px;\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = SVGShip(p.Color).Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</div><div class=\"player-cards\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		for _, c := range p.Deck {
+			templ_7745c5c3_Err = CardSlot(c).Render(ctx, templ_7745c5c3_Buffer)
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</div><div class=\"sidebar\"><div class=\"name\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var12 string
+		templ_7745c5c3_Var12, templ_7745c5c3_Err = templ.JoinStringErrs(p.Name)
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates\game.templ`, Line: 183, Col: 19}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var12))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</div><div class=\"ship-bank\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = SVGShip("#333").Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</div><div class=\"port-bank\"><ion-icon name=\"lock-closed-outline\"></ion-icon></div></div></div>")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		if !templ_7745c5c3_IsBuffer {
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteTo(templ_7745c5c3_W)
+		}
+		return templ_7745c5c3_Err
+	})
+}
+
+func CardSlot(c *data.Card) templ.Component {
+	return templ.ComponentFunc(func(ctx context.Context, templ_7745c5c3_W io.Writer) (templ_7745c5c3_Err error) {
+		templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templ_7745c5c3_W.(*bytes.Buffer)
+		if !templ_7745c5c3_IsBuffer {
+			templ_7745c5c3_Buffer = templ.GetBuffer()
+			defer templ.ReleaseBuffer(templ_7745c5c3_Buffer)
+		}
+		ctx = templ.InitializeContext(ctx)
+		templ_7745c5c3_Var13 := templ.GetChildren(ctx)
+		if templ_7745c5c3_Var13 == nil {
+			templ_7745c5c3_Var13 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
 		if c == nil {
@@ -83,10 +529,300 @@ func CardSlot(c Card) templ.Component {
 				return templ_7745c5c3_Err
 			}
 		} else {
-			templ_7745c5c3_Err = Card(c).Render(ctx, templ_7745c5c3_Buffer)
+			templ_7745c5c3_Err = ShopCard(*c).Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
+		}
+		if !templ_7745c5c3_IsBuffer {
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteTo(templ_7745c5c3_W)
+		}
+		return templ_7745c5c3_Err
+	})
+}
+
+func ShopCard(c data.Card) templ.Component {
+	return templ.ComponentFunc(func(ctx context.Context, templ_7745c5c3_W io.Writer) (templ_7745c5c3_Err error) {
+		templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templ_7745c5c3_W.(*bytes.Buffer)
+		if !templ_7745c5c3_IsBuffer {
+			templ_7745c5c3_Buffer = templ.GetBuffer()
+			defer templ.ReleaseBuffer(templ_7745c5c3_Buffer)
+		}
+		ctx = templ.InitializeContext(ctx)
+		templ_7745c5c3_Var14 := templ.GetChildren(ctx)
+		if templ_7745c5c3_Var14 == nil {
+			templ_7745c5c3_Var14 = templ.NopComponent
+		}
+		ctx = templ.ClearChildren(ctx)
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<div class=\"shop-card draggable\" style=\"position:absolute; top: 30px; left:10px;\"><input type=\"hidden\" name=\"id\" value=\"{c.ID}\"><div class=\"top\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		if c.Wood != "0" {
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<div class=\"wood\">")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			var templ_7745c5c3_Var15 string
+			templ_7745c5c3_Var15, templ_7745c5c3_Err = templ.JoinStringErrs(c.Wood)
+			if templ_7745c5c3_Err != nil {
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates\game.templ`, Line: 210, Col: 42}
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var15))
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</div>")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+		}
+		if c.Ore != "0" {
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<div class=\"ore\">")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			var templ_7745c5c3_Var16 string
+			templ_7745c5c3_Var16, templ_7745c5c3_Err = templ.JoinStringErrs(c.Ore)
+			if templ_7745c5c3_Err != nil {
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates\game.templ`, Line: 213, Col: 40}
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var16))
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</div>")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+		}
+		if c.Adder != "0" {
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<div class=\"adder\">")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			var templ_7745c5c3_Var17 string
+			templ_7745c5c3_Var17, templ_7745c5c3_Err = templ.JoinStringErrs(c.Adder)
+			if templ_7745c5c3_Err != nil {
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates\game.templ`, Line: 216, Col: 44}
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var17))
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</div>")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+		}
+		if c.Fiber != "0" {
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<div class=\"fiber\">")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			var templ_7745c5c3_Var18 string
+			templ_7745c5c3_Var18, templ_7745c5c3_Err = templ.JoinStringErrs(c.Fiber)
+			if templ_7745c5c3_Err != nil {
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates\game.templ`, Line: 219, Col: 44}
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var18))
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</div>")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</div><div class=\"image\"><img src=\"")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(fmt.Sprintf("/assets/card-images/%s", c.Image)))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("\"></div><div class=\"middle\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var19 string
+		templ_7745c5c3_Var19, templ_7745c5c3_Err = templ.JoinStringErrs(c.Text)
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates\game.templ`, Line: 223, Col: 35}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var19))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</div><div class=\"bottom\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var20 string
+		templ_7745c5c3_Var20, templ_7745c5c3_Err = templ.JoinStringErrs(c.TextBottomLeft)
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates\game.templ`, Line: 224, Col: 45}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var20))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</div></div>")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		if !templ_7745c5c3_IsBuffer {
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteTo(templ_7745c5c3_W)
+		}
+		return templ_7745c5c3_Err
+	})
+}
+
+func SVGShip(color string) templ.Component {
+	return templ.ComponentFunc(func(ctx context.Context, templ_7745c5c3_W io.Writer) (templ_7745c5c3_Err error) {
+		templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templ_7745c5c3_W.(*bytes.Buffer)
+		if !templ_7745c5c3_IsBuffer {
+			templ_7745c5c3_Buffer = templ.GetBuffer()
+			defer templ.ReleaseBuffer(templ_7745c5c3_Buffer)
+		}
+		ctx = templ.InitializeContext(ctx)
+		templ_7745c5c3_Var21 := templ.GetChildren(ctx)
+		if templ_7745c5c3_Var21 == nil {
+			templ_7745c5c3_Var21 = templ.NopComponent
+		}
+		ctx = templ.ClearChildren(ctx)
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<svg width=\"100%\" height=\"100%\" fill=\"")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(color))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("\" stroke=\"white\" viewBox=\"0 0 31 36\" version=\"1.1\" xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" xml:space=\"preserve\" xmlns:serif=\"http://www.serif.com/\" style=\"fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;\"><path d=\"M29.442,28.27c0.185,-0.069 0.377,-0.142 0.575,-0.218c-2.152,1.432 -2.523,2.737 -1.34,3.931c-2.676,-1.124 -4.828,0.198 -6.789,2.412c-2.606,1.493 -5.555,1.514 -7.683,-0.09c-3.43,-3.81 -7.463,-5.72 -14.205,-6.432l13.669,1.162c1.395,0.431 2.736,0.814 3.905,0.748c0.449,-2.012 0.707,-4.739 1.096,-8.7c-2.971,1.389 -5.942,3.261 -8.763,5.393c0.305,-1.3 0.675,-2.569 1.13,-3.796c-1.572,0.803 -3.129,1.726 -4.673,2.762c0.996,-4.983 3.061,-8.886 7.609,-10.821c0.294,-3.105 1.361,-6.118 3.909,-8.954c0.709,0.02 1.377,0.101 2,0.246c0.162,-2.021 0.324,-4.012 0.487,-5.913c-0.011,1.896 -0.073,3.759 -0.162,5.563c0.375,-0.585 0.814,-1.165 1.326,-1.741c1.739,-0.048 3.102,0.437 3.98,1.611c-0.93,0.573 -1.825,1.225 -2.686,1.952c0.268,0.238 0.518,0.502 0.749,0.795c-1.287,0.726 -2.516,1.57 -3.69,2.523c-0.027,0.371 -0.054,0.737 -0.081,1.099c0.108,-0.067 0.217,-0.133 0.328,-0.199c3.536,1.356 6.095,3.497 7.395,6.649c-2.861,0.545 -5.72,1.479 -8.444,2.704c-0.307,3.228 -0.693,5.898 -0.559,8.826c2.704,0.159 4.167,-0.234 5.596,-1.105c0.001,0.005 0.002,0.009 0.004,0.014l0.224,-1.856l0.951,-0.147l0.083,-1.515l-1.53,0.02l0.221,-1.25c1.126,-0.876 2.315,-1.131 3.236,-1.115c1.005,0.018 1.97,0.221 3.073,1.13l-0.129,1.807l-0.969,0.021l-0.057,0.89l0.728,0.071l-0.514,1.523Zm-1.281,-4.168l-0.443,-0l0,0.712l0.443,-0l-0,-0.712Zm1.385,-0l-0.442,-0l0,0.712l0.442,-0l0,-0.712Zm-0.627,-0l-0.442,-0l-0,0.712l0.442,-0l-0,-0.712Zm1.247,-0l-0.442,-0l0,0.712l0.442,-0l0,-0.712Zm-13.776,-9.693c0.889,-0.835 1.883,-1.618 2.999,-2.343c0.027,-0.339 0.055,-0.679 0.082,-1.02c-0.249,0.211 -0.496,0.427 -0.741,0.647c-0.18,0.231 -0.358,0.465 -0.535,0.703c0.003,-0.072 0.006,-0.145 0.009,-0.218c-0.704,0.666 -1.388,1.373 -2.051,2.121c0.08,0.036 0.159,0.073 0.237,0.11Zm11.044,9.693l-0.442,-0l0,0.712l0.442,-0l0,-0.712Zm-0.679,-0l-0.442,-0l-0,0.712l0.442,-0l0,-0.712Z\"></path></svg>")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		if !templ_7745c5c3_IsBuffer {
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteTo(templ_7745c5c3_W)
+		}
+		return templ_7745c5c3_Err
+	})
+}
+
+func SVGTree() templ.Component {
+	return templ.ComponentFunc(func(ctx context.Context, templ_7745c5c3_W io.Writer) (templ_7745c5c3_Err error) {
+		templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templ_7745c5c3_W.(*bytes.Buffer)
+		if !templ_7745c5c3_IsBuffer {
+			templ_7745c5c3_Buffer = templ.GetBuffer()
+			defer templ.ReleaseBuffer(templ_7745c5c3_Buffer)
+		}
+		ctx = templ.InitializeContext(ctx)
+		templ_7745c5c3_Var22 := templ.GetChildren(ctx)
+		if templ_7745c5c3_Var22 == nil {
+			templ_7745c5c3_Var22 = templ.NopComponent
+		}
+		ctx = templ.ClearChildren(ctx)
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<svg width=\"100%\" height=\"100%\" viewBox=\"0 0 29 33\" version=\"1.1\" xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" xml:space=\"preserve\" xmlns:serif=\"http://www.serif.com/\" style=\"fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;\"><path d=\"M3.216,15.88l-0.252,-1.116l-2.964,0.655l1.213,-3.274l-0.851,0.174l1.161,-2.654l-0.542,0.076l1.091,-3.704l2.272,2.873l-0.418,0.28l2.09,1.8l-0.853,0.321l1.013,1.017l2.219,-3.808l-1.283,0.049l2.333,-3.517l-0.808,-0.018l2.485,-5.034l2.615,4.634l-0.677,0.301l2.609,3.059l-1.319,0.259l1.735,2.382l2.238,-2.864l-0.872,-0.151l2.137,-2.449l-0.542,-0.134l2.483,-3.631l1.021,4.07l-0.505,0.139l1.269,2.818l-0.931,0.009l0.532,1.453l1.672,-1.568l-0.533,-0.143l2.468,-2.981l0.983,3.536l-0.499,0.093l1.235,2.477l-0.917,-0.039l1.298,3.194l-2.915,-0.694l-0.338,1.821c0.697,0.14 1.391,0.291 2.08,0.45c-1.191,4.472 -2.613,7.493 -2.613,7.493l-3.39,4.306l-12.564,4.916l-4.433,-7.337l-2.621,-7.802c-0,-0 -0.284,-0.843 -0.42,-1.264c0.609,-0.17 1.211,-0.328 1.808,-0.473Zm3.495,-3.016l0.879,0.883l-2.929,0.493l0.277,1.252c1.884,-0.39 3.712,-0.657 5.492,-0.819l-0.119,-2.004l-3.6,0.195Zm9.599,-1.92l0.986,1.354l-4.385,0.02l0.118,2.191c1.858,-0.067 3.665,-0.022 5.431,0.112l0.491,-3.269l-2.641,-0.408Zm6.807,-0.498l0.069,0.19l0.14,-0.147l-0.209,-0.043Zm-0.991,1.306l-1.366,-0.293l-0.514,3.329c1.14,0.126 2.264,0.287 3.375,0.478l0.304,-1.68l-3.011,-0.56l1.212,-1.274Z\"></path></svg>")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		if !templ_7745c5c3_IsBuffer {
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteTo(templ_7745c5c3_W)
+		}
+		return templ_7745c5c3_Err
+	})
+}
+
+func SVGMtn() templ.Component {
+	return templ.ComponentFunc(func(ctx context.Context, templ_7745c5c3_W io.Writer) (templ_7745c5c3_Err error) {
+		templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templ_7745c5c3_W.(*bytes.Buffer)
+		if !templ_7745c5c3_IsBuffer {
+			templ_7745c5c3_Buffer = templ.GetBuffer()
+			defer templ.ReleaseBuffer(templ_7745c5c3_Buffer)
+		}
+		ctx = templ.InitializeContext(ctx)
+		templ_7745c5c3_Var23 := templ.GetChildren(ctx)
+		if templ_7745c5c3_Var23 == nil {
+			templ_7745c5c3_Var23 = templ.NopComponent
+		}
+		ctx = templ.ClearChildren(ctx)
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<svg width=\"100%\" height=\"100%\" viewBox=\"0 0 27 36\" version=\"1.1\" xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" xml:space=\"preserve\" xmlns:serif=\"http://www.serif.com/\" style=\"fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;\"><path d=\"M26.039,18.163c-1.191,4.473 -2.612,9.364 -2.612,9.364l-3.623,3.485l-3.893,4.917l-10.644,-4.291c-0,0 -2.792,-5.888 -4.847,-11.903c-0.144,-0.422 -0.285,-0.844 -0.42,-1.264c0,-0 0.001,-0 0.001,-0l4.285,-10.384l1.367,1.87l-0.002,0.001l0.278,0.506c0,-0 0.095,0.159 0.234,0.351c0.079,0.109 0.162,0.232 0.264,0.334c0.066,0.065 0.121,0.108 0.192,0.15c0.147,0.085 0.25,0.126 0.314,0.146c-0.288,0.641 -0.557,1.27 -0.782,1.804c-0.361,0.856 -0.592,1.458 -0.592,1.458l-0.049,0.094l0.188,0.098l0.049,-0.094c0,0 0.363,-0.532 0.861,-1.316c0.368,-0.579 0.809,-1.284 1.237,-2.004c0.274,-0.461 0.535,-0.927 0.777,-1.36c0.352,-0.629 0.657,-1.187 0.86,-1.563c0,0 1.952,1.208 1.952,1.208l0.241,-0.606l1.066,-2.609l0.213,-0.536l-0.01,-0.004l3.166,-6.015l1.968,6.057l-0.008,-0.007l-0.36,0.452l-2.362,3.034l-1.406,0.33l-0.113,0.18c0,0 -0.442,0.738 -0.811,1.385c-0.224,0.393 -0.419,0.752 -0.49,0.884c0,-0 -1.138,0.846 -1.138,0.846l-0.033,0.048l-0.765,1.406l-0.06,0.087l0.174,0.121l0.061,-0.087l0.992,-1.146l1.374,-0.716l0.049,-0.078c0,-0 0.294,-0.407 0.615,-0.877c0.29,-0.423 0.602,-0.896 0.768,-1.15c0,-0 1.385,-0.281 1.385,-0.281l0.118,-0.148l2.545,-3.119l0.359,-0.451l-0.017,-0.014l1.601,-1.742l5.482,13.145c0.001,-0 0.002,-0 0.002,-0c0,0.001 -0,0.002 -0,0.003l0,0.001l-0.001,0Zm-19.361,-8.733l2.621,-6.519l2.578,2.694l-0.208,0.523l-0.786,2.025l-1.803,-1.071l-0.26,0.495c0,-0 -0.473,0.918 -1.051,2.101c-0.164,0.335 -0.338,0.69 -0.508,1.053c-0.003,-0.012 -0.005,-0.024 -0.008,-0.037c-0.031,-0.141 -0.091,-0.276 -0.141,-0.402c-0.088,-0.22 -0.172,-0.385 -0.172,-0.385l-0.262,-0.477Z\"></path></svg>")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		if !templ_7745c5c3_IsBuffer {
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteTo(templ_7745c5c3_W)
+		}
+		return templ_7745c5c3_Err
+	})
+}
+
+func SVGFlower() templ.Component {
+	return templ.ComponentFunc(func(ctx context.Context, templ_7745c5c3_W io.Writer) (templ_7745c5c3_Err error) {
+		templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templ_7745c5c3_W.(*bytes.Buffer)
+		if !templ_7745c5c3_IsBuffer {
+			templ_7745c5c3_Buffer = templ.GetBuffer()
+			defer templ.ReleaseBuffer(templ_7745c5c3_Buffer)
+		}
+		ctx = templ.InitializeContext(ctx)
+		templ_7745c5c3_Var24 := templ.GetChildren(ctx)
+		if templ_7745c5c3_Var24 == nil {
+			templ_7745c5c3_Var24 = templ.NopComponent
+		}
+		ctx = templ.ClearChildren(ctx)
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<svg width=\"100%\" height=\"100%\" viewBox=\"0 0 27 21\" version=\"1.1\" xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" xml:space=\"preserve\" xmlns:serif=\"http://www.serif.com/\" style=\"fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;\"><path d=\"M10.736,20.657l-5.469,-5.615c-0,0 -2.792,-5.888 -4.847,-11.903c-0.144,-0.422 -0.285,-0.844 -0.42,-1.264c9.892,-2.771 18.229,-2.119 26.04,-0.312c-1.19,4.472 -5.425,13.117 -5.425,13.117l-3.803,2.321l0.709,-13.573c0.016,-0.012 0.032,-0.024 0.049,-0.037c4.321,-0.424 7.506,-1.326 7.131,-1.689c-0.551,-0.533 -5.451,-1.282 -11.394,-1.266c-6.304,0.017 -11.226,0.853 -11.226,1.547c-0,0.568 2.839,1.324 7.668,1.561c0.017,0.013 0.035,0.025 0.053,0.037l0.934,17.076Z\"></path><path d=\"M3.47,2.011c0.036,0.022 0.1,0.045 0.148,0.066c0.308,0.142 0.862,0.274 1.645,0.414c0.561,0.099 1.235,0.202 2.018,0.309c0.883,0.122 3.126,0.434 3.122,0.48c-0.005,0.045 -2.158,-0.074 -3.012,-0.151c-1.237,-0.113 -2.218,-0.233 -2.922,-0.365c-0.578,-0.108 -0.977,-0.232 -1.189,-0.36c-0.217,-0.131 -0.285,-0.293 -0.271,-0.437c0.007,-0.078 0.04,-0.159 0.109,-0.237c0.063,-0.071 0.165,-0.147 0.307,-0.216c0.325,-0.161 0.899,-0.274 1.661,-0.399c0.554,-0.09 1.275,-0.178 2.007,-0.221c2.844,-0.17 2.934,-0.087 2.935,-0.042c0.001,0.046 -2.101,0.23 -2.968,0.336c-0.439,0.054 -0.849,0.112 -1.226,0.173c-0.946,0.152 -1.675,0.325 -2.096,0.504c-0.103,0.044 -0.185,0.086 -0.243,0.13c-0.007,0.005 -0.017,0.011 -0.025,0.016Zm-0.014,0.009c-0.008,0.007 -0.012,0.012 -0.006,0.016c0.006,0.003 0.006,-0.007 0.006,-0.016Zm0.001,-0.017c0.002,-0.016 0.003,-0.04 -0.008,-0.032c-0.012,0.01 -0.007,0.021 0.008,0.032Z\"></path><path d=\"M10.198,1.877c0.015,0.056 0.439,0.075 0.738,0.11c0.356,0.041 1.415,0.162 1.414,0.185c-0.002,0.023 -1.07,-0.004 -1.429,-0.028c-0.455,-0.03 -0.754,-0.063 -0.928,-0.094c-0.111,-0.021 -0.178,-0.046 -0.208,-0.066c-0.068,-0.044 -0.069,-0.1 -0.054,-0.144c0.008,-0.026 0.035,-0.063 0.095,-0.088c0.088,-0.037 0.317,-0.076 0.637,-0.102c0.258,-0.022 0.577,-0.037 0.926,-0.046c0.293,-0.008 0.607,-0.01 0.925,-0.008c0.474,0.002 1.435,0.002 1.435,0.024c-0,0.023 -1.009,0.041 -1.481,0.064c-0.317,0.016 -0.658,0.027 -0.949,0.042c-0.346,0.019 -1.138,0.086 -1.121,0.151Z\"></path><ellipse cx=\"13.529\" cy=\"1.897\" rx=\"1.856\" ry=\"0.113\"></ellipse><path d=\"M18.783,1.759c-0.115,-0.152 -0.527,-0.159 -1.267,-0.208c-0.647,-0.043 -3.007,-0.14 -3.006,-0.172c0,-0.033 1.81,-0.005 2.459,0.01c0.753,0.016 1.292,0.056 1.629,0.108c0.231,0.035 0.376,0.084 0.44,0.128c0.051,0.037 0.075,0.082 0.086,0.12c0.016,0.056 0.012,0.113 -0.019,0.17c-0.021,0.038 -0.069,0.089 -0.155,0.129c-0.105,0.05 -0.29,0.104 -0.554,0.155c-0.252,0.049 -0.577,0.097 -0.974,0.142c-0.412,0.047 -0.908,0.066 -1.469,0.104c-0.993,0.067 -2.949,0.032 -2.95,-0.001c-0.001,-0.032 1.985,-0.08 2.976,-0.182c0.557,-0.057 1.087,-0.089 1.496,-0.143c0.39,-0.052 0.648,-0.114 0.896,-0.162c0.116,-0.023 0.476,-0.115 0.412,-0.198Z\"></path><path d=\"M22.655,1.74c0.016,-0.015 0.084,-0.106 -0.384,-0.237c-0.425,-0.119 -1.095,-0.172 -1.843,-0.244c-0.5,-0.049 -1.124,-0.092 -1.791,-0.144c-0.623,-0.047 -1.321,-0.097 -2.101,-0.148c-0.932,-0.061 -2.122,-0.057 -3.297,-0.121c-0.037,-0.001 -0.066,-0.032 -0.065,-0.069c0.002,-0.037 0.032,-0.066 0.069,-0.065c1.178,0.014 2.229,0.031 3.164,0.058c0.784,0.023 1.485,0.051 2.11,0.084c0.671,0.035 1.255,0.075 1.758,0.12c0.763,0.069 1.341,0.147 1.758,0.227c0.4,0.077 0.659,0.162 0.799,0.243c0.161,0.093 0.209,0.206 0.203,0.3c-0.005,0.073 -0.04,0.154 -0.129,0.227c-0.096,0.079 -0.276,0.163 -0.529,0.241c-0.506,0.157 -1.327,0.315 -2.316,0.468c-1.035,0.159 -3.558,0.44 -3.563,0.404c-0.005,-0.037 2.493,-0.467 3.52,-0.658c0.965,-0.18 1.767,-0.355 2.259,-0.522c0.167,-0.056 0.306,-0.097 0.378,-0.164Z\"></path><path d=\"M7.49,1.893c0.001,0.156 0.504,0.311 0.893,0.381c0.277,0.049 0.597,0.098 0.953,0.147c0.433,0.059 0.919,0.118 1.447,0.172c1.078,0.112 3.71,0.125 3.71,0.171c-0,0.045 -1.491,0.109 -2.15,0.1c-0.744,-0.01 -1.441,-0.037 -2.07,-0.081c-0.628,-0.045 -1.188,-0.104 -1.654,-0.177c-0.468,-0.073 -0.842,-0.162 -1.104,-0.249c-0.243,-0.081 -0.4,-0.173 -0.469,-0.253c-0.089,-0.103 -0.104,-0.207 -0.065,-0.307c0.031,-0.077 0.114,-0.176 0.295,-0.246c0.19,-0.073 0.519,-0.144 1.01,-0.196c0.549,-0.057 2.453,-0.096 2.455,-0.051c0.003,0.045 -1.811,0.199 -2.349,0.292c-0.394,0.068 -0.904,0.147 -0.902,0.297Z\"></path><path d=\"M9.805,3.507c-0,0 0.065,0.621 0.161,1.629c0.064,0.669 0.143,1.505 0.223,2.444c0.037,0.434 0.074,0.888 0.109,1.358c0.034,0.442 0.066,0.897 0.095,1.359c0.026,0.404 0.049,0.814 0.069,1.225c0.03,0.613 0.054,1.23 0.076,1.837c0.046,1.273 0.082,2.504 0.112,3.575c0.06,2.093 0.091,3.577 0.091,3.577l0.002,0.049l-0.097,0.005l-0.003,-0.049c0,-0 -0.123,-1.479 -0.282,-3.566c-0.081,-1.07 -0.174,-2.297 -0.26,-3.568c-0.041,-0.606 -0.082,-1.222 -0.116,-1.835c-0.023,-0.411 -0.042,-0.821 -0.059,-1.225c-0.019,-0.463 -0.034,-0.919 -0.047,-1.362c-0.013,-0.471 -0.024,-0.927 -0.032,-1.362c-0.018,-0.942 -0.026,-1.783 -0.033,-2.454c-0.009,-1.013 -0.009,-1.637 -0.009,-1.637Z\"></path><path d=\"M17.534,3.431c0,0 0.008,0.496 0.012,1.301c0.002,0.534 0.004,1.202 -0.002,1.951c-0.002,0.346 -0.007,0.708 -0.015,1.083c-0.008,0.352 -0.017,0.714 -0.03,1.082c-0.011,0.321 -0.026,0.647 -0.043,0.973c-0.027,0.488 -0.059,0.977 -0.093,1.459c-0.07,1.009 -0.147,1.984 -0.215,2.834c-0.132,1.659 -0.237,2.833 -0.237,2.833l-0.002,0.049l-0.098,-0.005l0.002,-0.049c0,0 0.013,-1.179 0.046,-2.842c0.017,-0.852 0.037,-1.83 0.067,-2.842c0.014,-0.483 0.03,-0.973 0.052,-1.46c0.015,-0.327 0.033,-0.652 0.054,-0.973c0.023,-0.367 0.05,-0.729 0.078,-1.08c0.029,-0.373 0.06,-0.735 0.092,-1.079c0.068,-0.746 0.137,-1.41 0.192,-1.941c0.083,-0.801 0.14,-1.294 0.14,-1.294Z\"></path><path d=\"M15.365,3.913c-0,-0 0.036,0.411 0.085,1.082c0.033,0.444 0.073,0.999 0.111,1.622c0.017,0.288 0.033,0.59 0.046,0.902c0.013,0.293 0.025,0.595 0.033,0.902c0.007,0.268 0.011,0.539 0.012,0.812c0.002,0.406 -0.003,0.815 -0.009,1.217c-0.012,0.844 -0.033,1.659 -0.052,2.369c-0.037,1.387 -0.075,2.368 -0.075,2.368l0.001,0.049l-0.098,0.001l-0,-0.049c-0,0 -0.055,-0.981 -0.118,-2.367c-0.032,-0.709 -0.068,-1.523 -0.096,-2.367c-0.013,-0.402 -0.025,-0.81 -0.031,-1.217c-0.004,-0.273 -0.004,-0.544 -0.002,-0.812c0.002,-0.307 0.008,-0.609 0.016,-0.902c0.008,-0.312 0.018,-0.614 0.03,-0.902c0.026,-0.625 0.056,-1.18 0.08,-1.625c0.038,-0.671 0.067,-1.083 0.067,-1.083Z\"></path><path d=\"M13.664,3.837c-0,-0 0.038,0.153 0.091,0.414c0.036,0.172 0.078,0.38 0.119,0.623c0.019,0.111 0.036,0.225 0.051,0.346c0.015,0.113 0.028,0.228 0.037,0.347c0.009,0.103 0.014,0.207 0.017,0.313c0.004,0.157 0.001,0.314 -0.003,0.47c-0.008,0.327 -0.025,0.64 -0.04,0.915c-0.03,0.54 -0.062,0.917 -0.062,0.917l0.002,0.048l-0.098,0.004l-0.001,-0.049c-0,0 -0.06,-0.373 -0.13,-0.909c-0.036,-0.273 -0.076,-0.584 -0.108,-0.91c-0.016,-0.155 -0.03,-0.312 -0.038,-0.469c-0.005,-0.105 -0.007,-0.209 -0.006,-0.313c0,-0.119 0.005,-0.235 0.011,-0.348c0.006,-0.122 0.015,-0.238 0.025,-0.35c0.023,-0.244 0.05,-0.455 0.072,-0.629c0.034,-0.264 0.061,-0.42 0.061,-0.42Z\"></path><path d=\"M11.775,3.83c-0,-0 0.049,0.353 0.119,0.931c0.046,0.382 0.104,0.859 0.16,1.397c0.026,0.248 0.051,0.508 0.075,0.777c0.021,0.253 0.042,0.513 0.06,0.777c0.015,0.231 0.028,0.466 0.037,0.701c0.015,0.351 0.022,0.704 0.029,1.052c0.014,0.729 0.018,1.433 0.021,2.048c0.006,1.199 -0.001,2.048 -0.001,2.048l0.002,0.049l-0.098,0.004l-0.002,-0.048c0,-0 -0.085,-0.845 -0.19,-2.04c-0.054,-0.612 -0.115,-1.313 -0.169,-2.041c-0.026,-0.347 -0.051,-0.699 -0.069,-1.05c-0.013,-0.235 -0.021,-0.47 -0.028,-0.701c-0.007,-0.265 -0.01,-0.526 -0.012,-0.78c-0.001,-0.27 -0,-0.531 0.003,-0.78c0.006,-0.541 0.019,-1.021 0.03,-1.406c0.016,-0.582 0.033,-0.938 0.033,-0.938Z\"></path></svg>")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		if !templ_7745c5c3_IsBuffer {
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteTo(templ_7745c5c3_W)
+		}
+		return templ_7745c5c3_Err
+	})
+}
+
+func SVGCloth() templ.Component {
+	return templ.ComponentFunc(func(ctx context.Context, templ_7745c5c3_W io.Writer) (templ_7745c5c3_Err error) {
+		templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templ_7745c5c3_W.(*bytes.Buffer)
+		if !templ_7745c5c3_IsBuffer {
+			templ_7745c5c3_Buffer = templ.GetBuffer()
+			defer templ.ReleaseBuffer(templ_7745c5c3_Buffer)
+		}
+		ctx = templ.InitializeContext(ctx)
+		templ_7745c5c3_Var25 := templ.GetChildren(ctx)
+		if templ_7745c5c3_Var25 == nil {
+			templ_7745c5c3_Var25 = templ.NopComponent
+		}
+		ctx = templ.ClearChildren(ctx)
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<svg width=\"100%\" height=\"100%\" viewBox=\"0 0 28 22\" version=\"1.1\" xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" xml:space=\"preserve\" xmlns:serif=\"http://www.serif.com/\" style=\"fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;\"><path d=\"M24.684,5.302c0.454,0.096 0.906,0.197 1.356,0.301c-1.19,4.472 -5.425,13.117 -5.425,13.117l-6.941,2.783l-8.407,-2.421c-0,0 -2.792,-5.888 -4.847,-11.903c-0.144,-0.422 -0.285,-0.844 -0.42,-1.264c0.198,-0.056 0.395,-0.11 0.592,-0.162c-0.098,-0.399 -0.153,-0.788 -0.161,-1.166c-0.023,-0.979 0.179,-1.783 0.727,-2.297c0.014,-0.018 0.04,-0.022 0.059,-0.009c0.018,0.014 0.022,0.04 0.008,0.059c-0.28,0.577 -0.22,1.282 0.104,2.052c0.036,0.086 0.076,0.171 0.119,0.256c0.002,-0.107 0.007,-0.214 0.016,-0.32c0.091,-1.154 0.448,-2.142 1.184,-2.765c0.015,-0.018 0.041,-0.021 0.059,-0.006c0.018,0.015 0.021,0.041 0.006,0.059c-0.4,0.727 -0.418,1.632 -0.126,2.585c0.041,0.132 0.089,0.261 0.145,0.388c-0.004,-0.242 0.009,-0.481 0.039,-0.716c0.147,-1.162 0.564,-2.112 1.361,-2.632c0.017,-0.016 0.044,-0.016 0.06,0.001c0.016,0.017 0.015,0.043 -0.002,0.059c-0.387,0.542 -0.503,1.229 -0.401,2.003c0.07,0.531 0.278,1.055 0.597,1.581c0.032,-0.006 0.064,-0.012 0.095,-0.018c-0.011,-0.764 0.101,-1.482 0.366,-2.149c0.415,-1.041 1.036,-1.876 1.924,-2.294c0.019,-0.013 0.045,-0.009 0.058,0.01c0.014,0.019 0.01,0.045 -0.009,0.059c-0.585,0.611 -0.861,1.467 -0.862,2.434c0,0.484 0.112,0.956 0.291,1.447c0.023,0.063 0.049,0.124 0.078,0.183c0.174,-0.026 0.348,-0.05 0.521,-0.074c0.128,-0.702 0.363,-1.358 0.729,-1.953c0.584,-0.949 1.335,-1.697 2.274,-2.042c0.02,-0.012 0.045,-0.005 0.057,0.015c0.012,0.02 0.005,0.045 -0.015,0.057c-0.665,0.574 -1.082,1.409 -1.259,2.372c-0.08,0.435 -0.074,0.873 -0.013,1.326c0.129,-0.69 0.363,-1.334 0.724,-1.92c0.583,-0.95 1.334,-1.698 2.273,-2.043c0.02,-0.012 0.046,-0.005 0.057,0.015c0.012,0.02 0.005,0.046 -0.015,0.057c-0.665,0.574 -1.082,1.409 -1.258,2.372c-0.075,0.404 -0.075,0.812 -0.026,1.23c0.28,-0.717 0.673,-1.38 1.198,-1.958c0.765,-0.843 1.657,-1.49 2.648,-1.754c0.021,-0.009 0.046,-0 0.056,0.021c0.01,0.021 0.001,0.046 -0.02,0.056c-0.76,0.523 -1.342,1.325 -1.724,2.275c-0.187,0.463 -0.286,0.944 -0.327,1.444c0.065,-0.001 0.13,-0.003 0.195,-0.004c0.137,-0.548 0.347,-1.065 0.641,-1.543c0.583,-0.949 1.334,-1.697 2.273,-2.043c0.02,-0.011 0.046,-0.005 0.057,0.015c0.012,0.02 0.006,0.046 -0.014,0.058c-0.666,0.574 -1.083,1.408 -1.259,2.371c-0.069,0.375 -0.074,0.752 -0.035,1.139c0.021,-0 0.041,0 0.062,0.001c0.27,-0.616 0.629,-1.188 1.088,-1.694c0.766,-0.843 1.657,-1.49 2.649,-1.754c0.021,-0.01 0.046,-0 0.056,0.021c0.009,0.021 0,0.046 -0.021,0.055c-0.651,0.449 -1.172,1.103 -1.548,1.879c0.113,-0.12 0.233,-0.235 0.362,-0.345c0.756,-0.647 1.627,-1.122 2.613,-1.254c0.022,-0.007 0.046,0.004 0.053,0.026c0.008,0.022 -0.004,0.046 -0.026,0.054c-0.766,0.431 -1.35,1.087 -1.75,1.87c-0.21,0.412 -0.308,0.843 -0.35,1.293c0.067,0.006 0.135,0.011 0.202,0.017c0.316,-1.024 0.799,-1.927 1.495,-2.654c0.797,-0.832 1.704,-1.42 2.687,-1.559c0.022,-0.007 0.046,0.005 0.053,0.027c0.007,0.022 -0.005,0.046 -0.027,0.053c-0.772,0.415 -1.37,1.161 -1.766,2.098c-0.203,0.477 -0.304,0.985 -0.346,1.528c-0.019,0.248 0.009,0.486 0.045,0.731c0.039,0.005 0.077,0.009 0.115,0.014c0.239,-0.457 0.533,-0.885 0.886,-1.274c0.766,-0.844 1.658,-1.491 2.649,-1.754c0.021,-0.01 0.046,-0 0.056,0.021c0.01,0.021 0,0.046 -0.021,0.055c-0.759,0.523 -1.341,1.326 -1.724,2.275c-0.118,0.294 -0.201,0.595 -0.256,0.902c0.141,0.022 0.282,0.045 0.423,0.068c0.261,-0.486 0.556,-0.949 0.891,-1.383c0.712,-0.922 1.457,-1.652 2.198,-2.013c0.019,-0.013 0.045,-0.009 0.059,0.009c0.014,0.019 0.01,0.045 -0.009,0.059c-0.52,0.554 -0.938,1.421 -1.238,2.454c-0.063,0.215 -0.115,0.432 -0.158,0.652c0.277,-0.205 0.575,-0.395 0.891,-0.566c1.001,-0.541 2.07,-0.922 3.13,-1.008c0.023,-0.006 0.045,0.008 0.051,0.03c0.006,0.023 -0.008,0.046 -0.031,0.051c-0.904,0.393 -1.741,1.033 -2.449,1.814c-0.135,0.149 -0.259,0.301 -0.375,0.457Z\"></path></svg>")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		if !templ_7745c5c3_IsBuffer {
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteTo(templ_7745c5c3_W)
+		}
+		return templ_7745c5c3_Err
+	})
+}
+
+func SVGAir() templ.Component {
+	return templ.ComponentFunc(func(ctx context.Context, templ_7745c5c3_W io.Writer) (templ_7745c5c3_Err error) {
+		templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templ_7745c5c3_W.(*bytes.Buffer)
+		if !templ_7745c5c3_IsBuffer {
+			templ_7745c5c3_Buffer = templ.GetBuffer()
+			defer templ.ReleaseBuffer(templ_7745c5c3_Buffer)
+		}
+		ctx = templ.InitializeContext(ctx)
+		templ_7745c5c3_Var26 := templ.GetChildren(ctx)
+		if templ_7745c5c3_Var26 == nil {
+			templ_7745c5c3_Var26 = templ.NopComponent
+		}
+		ctx = templ.ClearChildren(ctx)
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<svg width=\"100%\" height=\"100%\" viewBox=\"0 0 39 14\" version=\"1.1\" xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" xml:space=\"preserve\" xmlns:serif=\"http://www.serif.com/\" style=\"fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;\"><g><path d=\"M16.212,5.705c-0,0 5.417,1.992 8.908,0.615c8.555,-3.374 13.607,-0.584 13.607,-0.584c-0,0 -5.77,-2.329 -14.099,1.997c-3.15,1.636 -8.416,-2.028 -8.416,-2.028Z\"></path><path d=\"M5.939,1.053c0,0 5.417,1.991 8.908,0.614c8.555,-3.374 13.607,-0.583 13.607,-0.583c0,-0 -5.769,-2.33 -14.098,1.996c-3.151,1.637 -8.417,-2.027 -8.417,-2.027Z\"></path><path d=\"M0,11.116c0,0 5.417,1.991 8.908,0.614c8.555,-3.374 13.607,-0.583 13.607,-0.583c-0,-0 -5.77,-2.33 -14.099,1.996c-3.15,1.636 -8.416,-2.027 -8.416,-2.027Z\"></path></g></svg>")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
 		}
 		if !templ_7745c5c3_IsBuffer {
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteTo(templ_7745c5c3_W)

@@ -4,7 +4,7 @@ import (
 	"log"
 )
 
-func GetDeckByName(deckName string) ([]Card, error) {
+func GetCardsByDeckName(deckName string) ([]Card, error) {
 	var items []Card
 	sql := "SELECT c.* FROM card c join deck d on c.deckid = d.id where d.name = ?"
 
@@ -20,6 +20,11 @@ func GetDeckByName(deckName string) ([]Card, error) {
 
 func DeleteCardsInDeck(id string) error {
 	_, err := db.Exec("delete from card where deckid = ?", id)
+	return err
+}
+
+func DeleteGameDeckByDeck(id string) error {
+	_, err := db.Exec("delete from gamedeck where deckid = ?", id)
 	return err
 }
 

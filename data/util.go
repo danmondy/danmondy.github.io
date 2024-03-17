@@ -4,6 +4,7 @@ import (
 	"crypto/rand"
 	"encoding/base64"
 	"fmt"
+	"image/color"
 	"io"
 	"log"
 	"time"
@@ -45,4 +46,17 @@ func Contains(s []string, e string) bool {
 		}
 	}
 	return false
+}
+
+func BoardContains(b []Hex, x int, y int) (*Hex, bool) {
+	for _, h := range b {
+		if h.X == x && h.Y == y {
+			return &h, true
+		}
+	}
+	return nil, false
+}
+
+func GetHexFromColor(c color.RGBA) string {
+	return fmt.Sprintf("#%.2x%.2x%.2x", c.R, c.G, c.B)
 }

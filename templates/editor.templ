@@ -2,50 +2,143 @@ package templates
 
 import(
     "fmt"
+    "strings"
     "github.com/danmondy/AirshipCards/data"
 )
-templ MainDeckEdit(decks []data.Deck){
-    <div class="main-left">
-        @DeckList(decks)
+
+
+templ EditorLayout(games []data.Game, game data.Game){
+    <html>
+        <head>
+            @Head()
+        </head>
+        <body>        
+            @Nav(games)
+            <div class="main-container" id="main-container">
+                @Editor(game)
+            </div>
+            @Modal()
+            @Scripts()
+        </body>
+    </html>
+}
+
+
+templ Editor(game data.Game){
+    <div class="main-left" id="main-left">
+        @SideBar(game)
     </div>
-    <div class="main-right"> 
-        <div class="right-top" id="top-right"> 
-        </div>
-        <div class="right-bot" id="bot-right">
-        </div>
+    <div class="main-right" id="main-right"  x-data="{activeColor:''}">
     </div>
 }
 
+templ SideBar(game data.Game){
+    <aside class="menu"  x-data="{}">
+        <ul>
+            <a href={templ.URL(fmt.Sprintf("/play/%s", game.ID))}><li>{ game.Name }</li></a>
+        </ul>
+        <p class="menu-label">
+            General
+        </p>
+        <ul class="menu-list">
+            <li hx-swap="outerHTML" hx-get={ fmt.Sprintf(`/editor/game/edit/%s`, game.ID) } hx-target="#modal-card" @click="$dispatch('modal-ex')">Game Settings</li>
+            <li hx-target="#main-right" hx-get={fmt.Sprintf("/editor/board/%s", game.BoardID)}>Board</li>
+        </ul>
+        <p class="menu-label">
+            Decks
+        </p>
+        <ul class="menu-list" hx-trigger="RefreshDecks from:body" hx-get="/editor/decks">
+            for _, d := range game.Decks{
+                <li hx-target="#main-right" hx-get={fmt.Sprintf("/editor/deck/%s", d.ID)}>{d.Name}</li>
+            }
+            <li hx-post="/editor/deck/new"><ion-icon name="add-outline" size="large"></ion-icon></li>
+        </ul>
+    </aside>
+}
+
 templ Card(c data.Card){
-    <div class="card">
+    <div  x-data="{}" class="card" hx-target="#modal-card" hx-swap="outerHTML" hx-get={fmt.Sprintf("/editor/card/edit/%s", c.ID)} @click="$dispatch('modal-ex')">
         <input type="hidden" name="id" value="{c.ID}"/>
         <div class="top"><div class="price">{fmt.Sprintf("%d",c.TextTopRight)}</div></div>
         <div class="image"><img src={fmt.Sprintf("/assets/card-images/%s", c.Image)}/></div>
         <div class="middle">{c.Text}</div>
         <div class="bottom">{c.TextBottomLeft}</div>
-        <button class="edit button is-light" hx-target="#bot-right" hx-swap="innerHTML" hx-get={fmt.Sprintf("/card/edit/%s", c.ID)}><ion-icon name="pencil" size="large"></ion-icon></button>
     </div>
 }
 
 templ DeckList(decks []data.Deck){
-    <ul hx-trigger="RefreshDecks from:body" hx-get="/decks">
+    <ul hx-trigger="RefreshDecks from:body" hx-get="/editor/decks" x-data="{}">
         for _, d := range decks{
-            <li hx-target="#top-right" hx-get={fmt.Sprintf("/deck/%s", d.ID)}>{d.Name}<ion-icon class="edit-deck" name="pencil" hx-target="#bot-right" hx-get={fmt.Sprintf("/deck/edit/%s", d.ID)}></ion-icon></li>
+            <li hx-target="#main-right" hx-get={fmt.Sprintf("/editor/deck/%s", d.ID)}>{d.Name}<ion-icon class="edit-deck" name="pencil" hx-target="#modal-card" @click="$dispatch('modal-ex');" hx-get={fmt.Sprintf("/editor/deck/edit/%s", d.ID)}></ion-icon></li>
         }
-        <li hx-post="/deck/new"><ion-icon name="add-outline" size="large"></ion-icon></li>
+        <li hx-post="/editor/deck/new"><ion-icon name="add-outline" size="large"></ion-icon></li>
     </ul>
 }
 
 templ DeckView(deck data.Deck, cards []data.Card){
-    <div class="deck" hx-trigger="RefreshDeck from:body" hx-get={fmt.Sprintf("/deck/%s", deck.ID)}>
-
-        for _, c := range cards{
-            @Card(c)
-        }
-        <div class="card" hx-target="this" hx-swap="beforebegin">
-            <div class="new">
-                <button class="button" hx-post={fmt.Sprintf("/card/%s", deck.ID)}>Create</button>
+    <div class="deck-view" hx-trigger="RefreshDeck from:body" hx-get={fmt.Sprintf("/editor/deck/%s", deck.ID)}>
+        <div class="icon-bar"><ion-icon class="edit-deck" name="cog" hx-target="#modal-card" hx-get={fmt.Sprintf("/editor/deck/edit/%s", deck.ID)} @click="$dispatch('modal-ex')"></ion-icon></div>
+        <div class="deck" x-data="{}">       
+            for _, c := range cards{
+                @Card(c)
+            }
+            <div class="card" hx-target="this" hx-swap="beforebegin">
+                <div class="new">
+                    <button class="button" hx-post={fmt.Sprintf("/editor/card/%s", deck.ID)}>Create</button>
+                </div>
             </div>
         </div>
     </div>
+}
+
+templ BoardEditor(b data.Board, template data.Board){
+    <div hx-trigger="RefreshBoard from:body" hx-get={fmt.Sprintf("/editor/board/%s", b.ID)}>
+        <form>
+            <input type="hidden" x-bind:value="activeColor" name="activeColor" id="activeColor" />
+        <div class="icon-bar">
+            <ion-icon class="edit" name="cog" hx-target="#modal-card" hx-get={fmt.Sprintf("/editor/board/edit/%s", b.ID)} @click="$dispatch('modal-ex')"></ion-icon>
+            for _, c := range strings.Split(b.Colors, ","){
+                @templ.Raw(fmt.Sprintf(`<div class="color-option" style="background-color:%s;width:30px;height:30px" x-on:click="activeColor = activeColor == '%s' ? '' : '%s'" x-bind:class="activeColor == '%s' ? 'active' : ''""></div>`, c, c, c, c))
+            }
+        </div>
+        <div class="board" id="board">
+            <div class="map">        
+            for _, t := range template.Hexes {
+                if h, success := data.BoardContains(b.Hexes, t.X, t.Y); success{
+                    //this is the hackiest line in the program - couldn't pass that variable types I wanted so I return string with %s in it, then fmt.Sprintf that string with the id
+                    @templ.Raw(fmt.Sprintf(GetEditorHexDiv(calcHexPos(h.X, h.Y, 60, 52, 0)), h.ID))
+                        @Hex(h.Color, 60, 60)
+                        <!--<div class="pos">{fmt.Sprintln(h.X, h.Y)}</div>-->
+                        <div class="type">
+                            switch h.Type {
+                                case "wood":
+                                    @SVGTree()
+                                case "ore":
+                                    @SVGMtn()
+                                case "wool":
+                                    @SVGCloth()
+                                case "adder":
+                                    @SVGFlower()
+                                default:
+                                    @SVGAir()
+                            }
+                        </div>
+                    @templ.Raw("</div>")
+                } else {
+                    @templ.Raw(fmt.Sprintf(GetEditorHexDivForTemplate(calcHexPos(t.X, t.Y, 60, 52, 0)), b.ID, t.X, t.Y)) 
+                        @Hex(t.Color, 60, 60)
+                        <div class="pos" style="color:#333;">{fmt.Sprintln(t.X, t.Y)}</div>
+                    @templ.Raw("</div>")
+                }
+            }
+            </div>
+        </div>
+        </form>
+    </div>
+}
+func GetEditorHexDiv(x int, y int)string{
+    return fmt.Sprintf(`<div x-data="{}" hx-get="/editor/hex/edit/%s" hx-target="#modal-card" @click="$dispatch('modal-ex')" style="position:absolute;left:%dpx;top:%dpx"  hx-on:htmx:config-request="event.detail.parameters.activeColor = document.getElementById('activeColor').value">`, "%s", x, y)
+}
+func GetEditorHexDivForTemplate(x int, y int)string{
+    return fmt.Sprintf(`<div hx-post="/editor/hex/new/%s?x=%s&y=%s" hx-target="#modal-card" style="position:absolute;left:%dpx;top:%dpx">`, "%s","%v","%v", x, y)
 }

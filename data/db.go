@@ -11,6 +11,15 @@ import (
 
 var db *sqlx.DB
 
+func RunSql() {
+	/*s := "drop table GameDeck;"
+	_, err := db.Exec(s)
+	if err != nil {
+		fmt.Println(err)
+	}
+	createGameDeckTable()*/
+}
+
 func Initialize(recreate bool) error {
 	if recreate {
 		DeleteAndRecreateFile()
@@ -61,42 +70,100 @@ func DeleteAndRecreateFile() {
 	log.Println("...created.")
 }
 
-func RunSql() {
-	sql := "ALTER table card add column Image TEXT;"
-	_, err := db.Exec(sql)
+// logs fatal if error
+func createTables() {
+	//add the schema for my db in code to keep versions in source control
+	createGameTable()
+	createDeckTable()
+	createCardTable()
+	createBoardTable()
+	createGameDeckTable()
+	createHexTable()
+}
+
+func createCardTable() {
+	createTableSQL := `CREATE TABLE card (
+		"id" TEXT PRIMARY KEY,
+		"deckid" TEXT NOT NULL,
+		"text" TEXT NOT NULL,
+		"image" TEXT NOT NULL,
+		"texttopright" INT NOT NULL,
+		"textbottomleft" TEXT NOT NULL,
+		"wood" TEXT DEFAULT '0' NOT NULL,
+		"ore" TEXT DEFAULT '0' NOT NULL,
+		"adder" TEXT DEFAULT '0' NOT NULL,
+		"fiber" TEXT DEFAULT '0' NOT NULL
+	  );`
+
+	_, err := db.Exec(createTableSQL)
 	if err != nil {
 		log.Fatal(err)
 	}
 }
 
-func createTables() error {
-	//add the schema for my db in code to keep versions in source control
-	createCardTableSQL := `CREATE TABLE card (
-		"id" TEXT NOT NULL,
-		"deckid" TEXT NOT NULL,
-		"text" TEXT NOT NULL,
-		"image" TEXT NOT NULL,
-		"texttopright" INT NOT NULL,
-		"textbottomleft" TEXT NOT NULL
-	  );`
-	createDeckTableSQL := `CREATE TABLE deck (
-		"id" TEXT,
+func createDeckTable() {
+	createTableSQL := `CREATE TABLE deck (
+		"id" TEXT PRIMARY KEY,
 		"name" TEXT	
 	  );`
 
-	_, err := db.Exec(createCardTableSQL)
+	_, err := db.Exec(createTableSQL)
 	if err != nil {
 		log.Fatal(err)
-		return err
 	}
+}
+func createGameTable() {
+	createTableSQL := `CREATE TABLE game (
+		"id" TEXT  PRIMARY KEY,
+		"boardid" TEXT,
+		"name" TEXT	
+	  );`
 
-	_, err = db.Exec(createDeckTableSQL)
+	_, err := db.Exec(createTableSQL)
 	if err != nil {
 		log.Fatal(err)
-		return err
 	}
+}
+func createBoardTable() {
+	createTableSQL := `CREATE TABLE board (
+		"id" TEXT PRIMARY KEY,
+		"name" TEXT,
+		"colors" TEXT
+	  );`
 
-	return nil
+	_, err := db.Exec(createTableSQL)
+	if err != nil {
+		log.Fatal(err)
+	}
+}
+
+func createHexTable() {
+	createTableSQL := `CREATE TABLE hex (
+		"id" TEXT PRIMARY KEY,		
+		"boardid" TEXT NOT NULL,
+		"color" TEXT,
+		"type" TEXT,
+		"x" INT DEFAULT 0 NOT NULL,
+		"y" INT DEFAULT 0 NOT NULL
+	  );`
+
+	_, err := db.Exec(createTableSQL)
+	if err != nil {
+		log.Fatal(err)
+	}
+}
+
+func createGameDeckTable() {
+	createTableSQL := `CREATE TABLE gamedeck (
+		"id" TEXT PRIMARY KEY,
+		"gameid" TEXT NOT NULL,		
+		"deckid" TEXT NOT NULL
+	  );`
+
+	_, err := db.Exec(createTableSQL)
+	if err != nil {
+		log.Fatal(err)
+	}
 }
 
 func populateTables() {
