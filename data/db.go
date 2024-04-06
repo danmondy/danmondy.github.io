@@ -12,12 +12,11 @@ import (
 var db *sqlx.DB
 
 func RunSql() {
-	/*s := "drop table GameDeck;"
+	s := "update hex set value = '';"
 	_, err := db.Exec(s)
 	if err != nil {
 		fmt.Println(err)
 	}
-	createGameDeckTable()*/
 }
 
 func Initialize(recreate bool) error {
@@ -38,6 +37,8 @@ func Initialize(recreate bool) error {
 		fmt.Println(err)
 		return err
 	}
+
+	RunSql()
 
 	if recreate {
 		createTables()
@@ -143,6 +144,7 @@ func createHexTable() {
 		"boardid" TEXT NOT NULL,
 		"color" TEXT,
 		"type" TEXT,
+		"value" TEXT,
 		"x" INT DEFAULT 0 NOT NULL,
 		"y" INT DEFAULT 0 NOT NULL
 	  );`

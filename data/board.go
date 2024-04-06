@@ -33,6 +33,7 @@ type Hex struct {
 	BoardID string `db:"boardid" form-type:"hidden" form:"boardid"`
 	Color   string `db:"color" form-type:"color" form:"color" label:"color"`
 	Type    string `db:"type" form-type:"text" form:"type" label:"type"`
+	Value   string `db:"value" form-type:"text" form:"value" label:"value"`
 	X       int    `db:"x" form-type:"number" form:"x" label:"position x"`
 	Y       int    `db:"y" form-type:"number" form:"y" label:"position y"`
 	//Bank       Bank

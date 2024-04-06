@@ -28,7 +28,7 @@ templ Editor(game data.Game){
     <div class="main-left" id="main-left">
         @SideBar(game)
     </div>
-    <div class="main-right" id="main-right"  x-data="{activeColor:''}">
+    <div class="main-right" id="main-right"  x-data="{activeColor:'', activeValue:'', activeType:''}">
     </div>
 }
 
@@ -92,53 +92,75 @@ templ DeckView(deck data.Deck, cards []data.Card){
 }
 
 templ BoardEditor(b data.Board, template data.Board){
-    <div hx-trigger="RefreshBoard from:body" hx-get={fmt.Sprintf("/editor/board/%s", b.ID)}>
+    <div hx-trigger="RefreshBoard from:body" hx-get={fmt.Sprintf("/editor/board/%s", b.ID)} id="board-editor">
         <form>
             <input type="hidden" x-bind:value="activeColor" name="activeColor" id="activeColor" />
-        <div class="icon-bar">
-            <ion-icon class="edit" name="cog" hx-target="#modal-card" hx-get={fmt.Sprintf("/editor/board/edit/%s", b.ID)} @click="$dispatch('modal-ex')"></ion-icon>
-            for _, c := range strings.Split(b.Colors, ","){
-                @templ.Raw(fmt.Sprintf(`<div class="color-option" style="background-color:%s;width:30px;height:30px" x-on:click="activeColor = activeColor == '%s' ? '' : '%s'" x-bind:class="activeColor == '%s' ? 'active' : ''""></div>`, c, c, c, c))
-            }
-        </div>
-        <div class="board" id="board">
-            <div class="map">        
-            for _, t := range template.Hexes {
-                if h, success := data.BoardContains(b.Hexes, t.X, t.Y); success{
-                    //this is the hackiest line in the program - couldn't pass that variable types I wanted so I return string with %s in it, then fmt.Sprintf that string with the id
-                    @templ.Raw(fmt.Sprintf(GetEditorHexDiv(calcHexPos(h.X, h.Y, 60, 52, 0)), h.ID))
-                        @Hex(h.Color, 60, 60)
-                        <!--<div class="pos">{fmt.Sprintln(h.X, h.Y)}</div>-->
-                        <div class="type">
-                            switch h.Type {
-                                case "wood":
-                                    @SVGTree()
-                                case "ore":
-                                    @SVGMtn()
-                                case "wool":
-                                    @SVGCloth()
-                                case "adder":
-                                    @SVGFlower()
-                                default:
-                                    @SVGAir()
-                            }
-                        </div>
-                    @templ.Raw("</div>")
-                } else {
-                    @templ.Raw(fmt.Sprintf(GetEditorHexDivForTemplate(calcHexPos(t.X, t.Y, 60, 52, 0)), b.ID, t.X, t.Y)) 
-                        @Hex(t.Color, 60, 60)
-                        <div class="pos" style="color:#333;">{fmt.Sprintln(t.X, t.Y)}</div>
-                    @templ.Raw("</div>")
+            <div class="icon-bar">
+                <ion-icon class="edit" name="cog" hx-target="#modal-card" hx-get={fmt.Sprintf("/editor/board/edit/%s", b.ID)} @click="$dispatch('modal-ex')"></ion-icon>
+                for _, c := range strings.Split(b.Colors, ","){
+                    @templ.Raw(fmt.Sprintf(`<div class="color-option" style="background-color:%s;width:30px;height:30px" x-on:click="activeColor = activeColor == '%s' ? '' : '%s'" x-bind:class="activeColor == '%s' ? 'active' : ''""></div>`, c, c, c, c))
                 }
-            }
+                <label>value:</label>
+                <input type="text" x-model="activeValue" name="activeValue" id="activeValue" />
+                <label>type:</label>
+                <select x-model="activeType" name="activeType" id="activeType" >
+                    <option value="">--unselected--</option>
+                    <option>wood</option>
+                    <option>ore</option>
+                    <option>crystal</option>
+                    <option>wool</option>
+                    <option>adder</option>
+                </select>
             </div>
-        </div>
+            <div class="board" id="board">
+                <div class="map">        
+                for _, t := range template.Hexes {
+                    if h, success := data.BoardContains(b.Hexes, t.X, t.Y); success{
+                        //this is the hackiest line in the program - couldn't pass that variable types I wanted so I return string with %s in it, then fmt.Sprintf that string with the id
+                        @templ.Raw(fmt.Sprintf(GetEditorHexDiv(calcHexPos(h.X, h.Y, 60, 52, 0)), h.ID))
+                            @DrawHex(h.Color, 60, 60)
+                            <!--<div class="pos">{fmt.Sprintln(h.X, h.Y)}</div>-->
+                            <div class="value">{h.Value}</div>
+                            <div class="edit">
+                                <ion-icon name="settings-outline" hx-get={fmt.Sprintf(`/editor/hex/edit/%s`, h.ID)} hx-target="#modal-card" @click="$dispatch('modal-ex')"></ion-icon>
+                            </div>
+                            <div class="type">
+                                switch h.Type {
+                                    case "wood":
+                                        @SVGTree()
+                                    case "ore":
+                                        @SVGMtn()
+                                    case "wool":
+                                        @SVGCloth()
+                                    case "adder":
+                                        @SVGFlower()
+                                    default:
+                                        @SVGAir()
+                                }
+                            </div>
+                        @templ.Raw("</div>")
+                    } else {
+                        @templ.Raw(fmt.Sprintf(GetEditorHexDivForTemplate(calcHexPos(t.X, t.Y, 60, 52, 0)), b.ID, t.X, t.Y)) 
+                            @DrawHex(t.Color, 60, 60)
+                            <div class="pos" style="color:#333;">{fmt.Sprintln(t.X, t.Y)}</div>
+                        @templ.Raw("</div>")
+                    }
+                }
+                </div>
+            </div>
         </form>
     </div>
+    <script>
+        function addActiveElements(){
+            event.detail.parameters.activeColor = document.getElementById('activeColor').value;
+            event.detail.parameters.activeValue = document.getElementById('activeValue').value;
+            event.detail.parameters.activeType = document.getElementById('activeType').value;
+        }
+    </script>
 }
 func GetEditorHexDiv(x int, y int)string{
-    return fmt.Sprintf(`<div x-data="{}" hx-get="/editor/hex/edit/%s" hx-target="#modal-card" @click="$dispatch('modal-ex')" style="position:absolute;left:%dpx;top:%dpx"  hx-on:htmx:config-request="event.detail.parameters.activeColor = document.getElementById('activeColor').value">`, "%s", x, y)
+    return fmt.Sprintf(`<div hx-put="/editor/hex/update/quick/%s" style="position:absolute;left:%dpx;top:%dpx"  hx-on:htmx:config-request="addActiveElements()">`, "%s", x, y)
 }
 func GetEditorHexDivForTemplate(x int, y int)string{
-    return fmt.Sprintf(`<div hx-post="/editor/hex/new/%s?x=%s&y=%s" hx-target="#modal-card" style="position:absolute;left:%dpx;top:%dpx">`, "%s","%v","%v", x, y)
+    return fmt.Sprintf(`<div hx-post="/editor/hex/new/%s?x=%s&y=%s" style="position:absolute;left:%dpx;top:%dpx">`, "%s","%v","%v", x, y)
 }

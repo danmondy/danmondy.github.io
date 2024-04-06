@@ -39,6 +39,7 @@ func RegisterEditorHandlers(e *echo.Echo) {
 
 	e.GET("/editor/hex/edit/:id", HexEdit)
 	e.PUT("/editor/hex/update", HexUpdate)
+	e.PUT("/editor/hex/update/quick/:id", HexUpdateQuick)
 	e.POST("/editor/hex/new/:boardid", PostHexNewQuick)
 	e.POST("/editor/hex/:boardid", PostHexNew)
 	e.DELETE("/editor/hex/:id", HexDelete)
@@ -317,6 +318,8 @@ func GetHexNew(c echo.Context) error {
 
 func PostHexNewQuick(c echo.Context) error {
 	ac := c.FormValue("activeColor")
+	av := c.FormValue("activeValue")
+	at := c.FormValue("activeType")
 
 	boardID := c.Param("boardid")
 	x, err := strconv.Atoi(c.QueryParam("x"))
@@ -327,7 +330,7 @@ func PostHexNewQuick(c echo.Context) error {
 	if err != nil {
 		return err
 	}
-	h := data.Hex{ID: data.NewUniqueID(), BoardID: boardID, Color: ac, X: x, Y: y, Type: ""}
+	h := data.Hex{ID: data.NewUniqueID(), BoardID: boardID, Color: ac, X: x, Y: y, Type: at, Value: av}
 	data.Insert(&h)
 
 	c.Response().Header().Set("HX-Trigger", "RefreshBoard")
@@ -349,14 +352,23 @@ func PostHexNew(c echo.Context) error {
 func HexEdit(c echo.Context) error {
 	HexID := c.Param("id")
 
-	color := c.QueryParam("activeColor")
-	log.Println("color: ", color)
+	aColor := c.QueryParam("activeColor")
+	aValue := c.QueryParam("activeValue")
+	aType := c.QueryParam("activeType")
+
+	log.Println("color: ", aColor)
 	hex, err := data.GetById[data.Hex](HexID)
 	if err != nil {
 		return err
 	}
-	if color != "" {
-		hex.Color = color
+	if aColor != "" {
+		hex.Color = aColor
+	}
+	if aType != "" {
+		hex.Type = aType
+	}
+	if aValue != "" {
+		hex.Value = aValue
 	}
 	return render(c, http.StatusOK, templates.CreateForm(&hex, false))
 }
@@ -367,6 +379,34 @@ func HexUpdate(c echo.Context) error {
 		return err
 	}
 	data.Update(&Hex)
+
+	c.Response().Header().Set("HX-Trigger", "RefreshBoard")
+	return c.String(http.StatusOK, "")
+}
+
+func HexUpdateQuick(c echo.Context) error {
+	HexID := c.Param("id")
+
+	aColor := c.FormValue("activeColor")
+	aValue := c.FormValue("activeValue")
+	aType := c.FormValue("activeType")
+
+	log.Println("Quick Update: ", aColor, aValue, aType)
+	hex, err := data.GetById[data.Hex](HexID)
+	if err != nil {
+		return err
+	}
+	if aColor != "" {
+		hex.Color = aColor
+	}
+	if aType != "" {
+		hex.Type = aType
+	}
+	if aValue != "" {
+		hex.Value = aValue
+	}
+
+	data.Update(&hex)
 
 	c.Response().Header().Set("HX-Trigger", "RefreshBoard")
 	return c.String(http.StatusOK, "")

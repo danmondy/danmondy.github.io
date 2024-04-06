@@ -46,8 +46,9 @@ templ Board(b data.Board){
         for _, h := range b.Hexes {
 
             @templ.Raw(GetHexDiv(calcHexPos(h.X, h.Y, 60, 52, 0))) 
-                @Hex(h.Color, 60, 60)
+                @DrawHex(h.Color, 60, 60)
                 <div class="pos">{fmt.Sprintln(h.X, h.Y)}</div>
+                <div class="value">{h.Value}</div>
                 <div class="type" x-show="open">
                     switch h.Type {
                         case "wood":
@@ -92,7 +93,7 @@ func calcHexPos(x int, y int,  w int, h int, padding int)(int, int){
     }
     return xx, yy     
 }
-templ Hex(color string, w int, h int){
+templ DrawHex(color string, w int, h int){
     <svg class="hex" stroke="#671919" fill={fmt.Sprintf("%s",color)} height={fmt.Sprintf("%dpx", h)} width={fmt.Sprintf("%dpx", w)} version="1.1" id="Capa_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 184.751 184.751" xml:space="preserve">
         <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
         <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
